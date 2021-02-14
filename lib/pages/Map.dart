@@ -33,7 +33,7 @@ class _MapState extends State<Map> {
         position: BMFCoordinate(41.932551, 123.410423),
         title: 'flutterMaker',
         identifier: 'flutter_marker',
-        icon: 'resources/icon-location.png');
+        icon: 'images/icon_location.png');
   }
 
   @override
