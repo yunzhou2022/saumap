@@ -1,5 +1,5 @@
-import 'package:saumap/pages/Map.dart';
+import 'package:saumap/pages/Tabs.dart';
 
 final routes = {
-  '/': (context) => Map(),
+  '/': (context) => Tabs(),
 };

@@ -52,7 +52,11 @@ flutter:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
   assets:
-    - images/icon_location.png
+    - images/icon_location_16.png
+    - images/icon_location_32.png
+    - images/icon_location_48.png
+    - images/icon_location_64.png
+    - images/icon_location_200.png
     # - images/people.svg
     
   # An image asset can refer to one or more resolution-specific "variants", see

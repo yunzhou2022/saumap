@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bmfbase/BaiduMap/bmfmap_base.dart';
 import 'package:flutter_bmfmap/BaiduMap/bmfmap_map.dart';
+import 'components/MyTextField.dart';
 
 /// 创建BMFMarker
 // BMFMarker marker = BMFMarker(
@@ -12,15 +13,18 @@ import 'package:flutter_bmfmap/BaiduMap/bmfmap_map.dart';
 // /// 添加Marker
 // myMapController?.addMarker(marker);
 
-class Map extends StatefulWidget {
+class MapPage extends StatefulWidget {
   @override
-  _MapState createState() => _MapState();
+  _MapPageState createState() => _MapPageState();
 }
 
-class _MapState extends State<Map> {
+class _MapPageState extends State<MapPage> {
   BMFMapOptions mapOptions;
   BMFMapController ctl;
   BMFMarker marker;
+
+  String where;
+
   @override
   void initState() {
     super.initState();
@@ -33,7 +37,7 @@ class _MapState extends State<Map> {
         position: BMFCoordinate(41.932551, 123.410423),
         title: 'flutterMaker',
         identifier: 'flutter_marker',
-        icon: 'images/icon_location.png');
+        icon: 'images/icon_location_64.png');
   }
 
   @override
@@ -41,7 +45,17 @@ class _MapState extends State<Map> {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: Text('百度地图'),
+          title: MyTextField(
+            placeholder: "想去哪？",
+            onChange: (d) => where = d,
+          ),
+          actions: [
+            IconButton(
+                icon: Icon(Icons.search),
+                onPressed: () {
+                  print(where);
+                }),
+          ],
         ),
         body: BMFMapWidget(
           onBMFMapCreated: (controller) {
