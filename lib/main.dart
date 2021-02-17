@@ -24,6 +24,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       localizationsDelegates: [
         //国际化
         GlobalMaterialLocalizations.delegate,
@@ -34,7 +35,6 @@ class MyApp extends StatelessWidget {
         const Locale("zh", 'CH'),
         const Locale("en", 'US'),
       ],
-      debugShowCheckedModeBanner: false,
       // home: Tabs(),
       initialRoute: '/', //初始化的时候，加载的路由；
       routes: routes,
