@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bmfbase/BaiduMap/bmfmap_base.dart';
 import 'package:flutter_bmfmap/BaiduMap/bmfmap_map.dart';
-import 'package:saumap/apis.dart';
+import 'package:saumap/pages/components/Dialog.dart';
 import 'package:saumap/pages/marker/add.dart';
 import 'package:saumap/pages/marker/markerArguments.dart';
 import 'components/MyTextField.dart';
@@ -19,7 +19,7 @@ class _MapPageState extends State<MapPage> {
   String where;
 
   List markers;
-  Map _clickedMarker = null;
+  Map _clickedMarker;
   @override
   void initState() {
     super.initState();
@@ -46,40 +46,53 @@ class _MapPageState extends State<MapPage> {
                 }),
           ],
         ),
-        body: BMFMapWidget(
-          onBMFMapCreated: (controller) {
-            ctl = controller;
-            addMarkers(ctl).then((value) => markers = value);
-            // 地图点击回调
-            ctl?.setMapOnClickedMapBlankCallback(
-                callback: (BMFCoordinate coordinate) {
-              if (addmarker) {
-                Navigator.pushNamed(context, '/form',
-                    arguments: MarkerArguments(
-                        ctl,
-                        coordinate.latitude.toString(),
-                        coordinate.longitude.toString()));
-              }
-            });
-            ctl?.setMapClickedMarkerCallback(
-                callback: (String id, dynamic extra) {
-              for (Map item in markers) {
-                if (item["id"] == id) {
-                  setState(() {
-                    _clickedMarker = item;
-                  });
-                  break;
+        body: Stack(children: [
+          BMFMapWidget(
+            onBMFMapCreated: (controller) {
+              ctl = controller;
+              addMarkers(ctl).then((value) => markers = value);
+              // 地图点击回调
+              ctl?.setMapOnClickedMapBlankCallback(
+                  callback: (BMFCoordinate coordinate) {
+                if (addmarker) {
+                  Navigator.pushNamed(context, '/form',
+                      arguments: MarkerArguments(
+                          ctl,
+                          coordinate.latitude.toString(),
+                          coordinate.longitude.toString()));
                 }
-              }
-            });
-          },
-          mapOptions: mapOptions,
-        ),
+              });
+              ctl?.setMapClickedMarkerCallback(
+                  callback: (String id, dynamic extra) {
+                for (Map item in markers) {
+                  if (item["id"] == id) {
+                    setState(() {
+                      _clickedMarker = item;
+                    });
+                    break;
+                  }
+                }
+              });
+            },
+            mapOptions: mapOptions,
+          ),
+          _clickedMarker == null
+              ? Container(
+                  width: 0,
+                  height: 0,
+                )
+              : LocationDialog(
+                  info: _clickedMarker,
+                  onClose: () {
+                    setState(() {
+                      _clickedMarker = null;
+                    });
+                  }),
+        ]),
         floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
         floatingActionButton: Container(
             width: 40,
             height: 40,
-            // padding: EdgeInsets.all(2),
             margin: EdgeInsets.fromLTRB(0, 0, 4, 100),
             child: FloatingActionButton(
               heroTag: "addOrClose",
@@ -94,8 +107,6 @@ class _MapPageState extends State<MapPage> {
                   addmarker = !addmarker;
                 });
               },
-              // backgroundColor:
-              //     _currentIndex != 1 ? Colors.yellow : Colors.orange,
             )));
   }
 }
