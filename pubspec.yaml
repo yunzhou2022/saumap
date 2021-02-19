@@ -61,6 +61,11 @@ flutter:
     - images/icon_location_48.png
     - images/icon_location_64.png
     - images/icon_location_200.png
+
+    - images/my_location_64.png
+
+    - images/set_location_64.png
+    - images/set_location_32.png
     # - images/people.svg
 
   # An image asset can refer to one or more resolution-specific "variants", see

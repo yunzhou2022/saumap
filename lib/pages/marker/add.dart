@@ -21,14 +21,29 @@ import 'package:saumap/apis.dart';
 // }
 
 String addMark(BMFMapController ctl, double lat_x, double lng_y,
-    {title = 'flutterMaker', id = "flutter_marker"}) {
+    {title = 'flutterMaker',
+    id = "flutter_marker",
+    icon = 'images/icon_location_48.png'}) {
   BMFMarker marker = BMFMarker(
       position: BMFCoordinate(lat_x, lng_y),
       title: title,
       identifier: id,
-      icon: 'images/icon_location_48.png');
+      icon: icon);
   ctl.addMarker(marker);
   return marker.getId();
+}
+
+BMFMarker addMyLocateMarker(BMFMapController ctl, double lat_x, double lng_y,
+    {title = 'flutterMaker',
+    id = "flutter_marker",
+    icon = 'images/my_location_64.png'}) {
+  BMFMarker marker = BMFMarker(
+      position: BMFCoordinate(lat_x, lng_y),
+      title: title,
+      identifier: id,
+      icon: icon);
+  ctl.addMarker(marker);
+  return marker;
 }
 
 Future<List> addMarkers(ctl) async {

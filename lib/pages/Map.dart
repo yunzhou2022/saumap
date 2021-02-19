@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bmfbase/BaiduMap/bmfmap_base.dart';
 import 'package:flutter_bmfmap/BaiduMap/bmfmap_map.dart';
 import 'package:saumap/pages/components/Dialog.dart';
+import 'package:saumap/pages/components/Locate.dart';
 import 'package:saumap/pages/marker/add.dart';
 import 'package:saumap/pages/marker/markerArguments.dart';
 import 'components/MyTextField.dart';
@@ -20,6 +21,10 @@ class _MapPageState extends State<MapPage> {
 
   List markers;
   Map _clickedMarker;
+
+  Map myLocate;
+  // BMFMarker myLocateMarker;
+
   @override
   void initState() {
     super.initState();
@@ -27,6 +32,24 @@ class _MapPageState extends State<MapPage> {
         center: BMFCoordinate(41.932551, 123.410423),
         zoomLevel: 18,
         mapPadding: BMFEdgeInsets(left: 30, top: 0, right: 30, bottom: 0));
+
+    // 设置监听当前位置，更新位置
+    var listener = getLocate();
+    listener().listen((Map<String, Object> result) {
+      // myLocateMarker?.updatePosition(
+      //     BMFCoordinate(result['latitude'], result['longitude']));
+      ctl?.updateLocationData(BMFUserLocation(
+        location: BMFLocation(
+            coordinate: BMFCoordinate(result['latitude'], result['longitude']),
+            altitude: 0,
+            horizontalAccuracy: 5,
+            verticalAccuracy: -1.0,
+            speed: -1.0,
+            course: -1.0),
+      ));
+
+      myLocate = result;
+    });
   }
 
   @override
@@ -50,18 +73,16 @@ class _MapPageState extends State<MapPage> {
           BMFMapWidget(
             onBMFMapCreated: (controller) {
               ctl = controller;
+
+              // 渲染我的位置，得到marker实例用于更新
+              // myLocateMarker = addMyLocateMarker(ctl, 41.932551, 123.411564);
+              ctl?.showUserLocation(true);
+              // 开始定位
+              startLocation();
+
+              // 渲染用户添加的标注
               addMarkers(ctl).then((value) => markers = value);
-              // 地图点击回调
-              ctl?.setMapOnClickedMapBlankCallback(
-                  callback: (BMFCoordinate coordinate) {
-                if (addmarker) {
-                  Navigator.pushNamed(context, '/form',
-                      arguments: MarkerArguments(
-                          ctl,
-                          coordinate.latitude.toString(),
-                          coordinate.longitude.toString()));
-                }
-              });
+              // 标注点击回调
               ctl?.setMapClickedMarkerCallback(
                   callback: (String id, dynamic extra) {
                 for (Map item in markers) {
@@ -73,6 +94,10 @@ class _MapPageState extends State<MapPage> {
                   }
                 }
               });
+              // 地图点击回调
+              ctl?.setMapOnClickedMapBlankCallback(callback: mapClickCallback);
+              ctl?.setMapOnClickedMapPoiCallback(
+                  callback: (poi) => mapClickCallback(poi.pt));
             },
             mapOptions: mapOptions,
           ),
@@ -92,21 +117,49 @@ class _MapPageState extends State<MapPage> {
         floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
         floatingActionButton: Container(
             width: 40,
-            height: 40,
+            height: 120,
             margin: EdgeInsets.fromLTRB(0, 0, 4, 100),
-            child: FloatingActionButton(
-              heroTag: "addOrClose",
-              child: Icon(
-                addmarker ? Icons.close : Icons.add,
-                // color: Colors.black,
-                size: 30,
-              ),
-              elevation: 5, //阴影
-              onPressed: () {
-                setState(() {
-                  addmarker = !addmarker;
-                });
-              },
+            child: Column(
+              children: [
+                FloatingActionButton(
+                  heroTag: "addOrClose",
+                  child: Icon(
+                    addmarker ? Icons.close : Icons.add,
+                    // color: Colors.black,
+                    size: 30,
+                  ),
+                  elevation: 5, //阴影
+                  onPressed: () {
+                    setState(() {
+                      addmarker = !addmarker;
+                    });
+                  },
+                ),
+                FloatingActionButton(
+                  heroTag: "locateMyself",
+                  child: Icon(
+                    Icons.my_location_sharp,
+                    // color: Colors.black,
+                    size: 30,
+                  ),
+                  elevation: 5, //阴影
+                  onPressed: () {
+                    setState(() {
+                      double lat = myLocate['latitude'];
+                      double lng = myLocate['longitude'];
+                      ctl.setCenterCoordinate(BMFCoordinate(lat, lng), true);
+                    });
+                  },
+                ),
+              ],
             )));
+  }
+
+  void mapClickCallback(BMFCoordinate coordinate) {
+    if (addmarker) {
+      Navigator.pushNamed(context, '/form',
+          arguments: MarkerArguments(ctl, coordinate.latitude.toString(),
+              coordinate.longitude.toString()));
+    }
   }
 }
