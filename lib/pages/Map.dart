@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bmfbase/BaiduMap/bmfmap_base.dart';
 import 'package:flutter_bmfmap/BaiduMap/bmfmap_map.dart';
+import 'package:saumap/apis.dart';
 import 'package:saumap/pages/components/Dialog.dart';
 import 'package:saumap/pages/components/Locate.dart';
+import 'package:saumap/pages/line/add.dart';
 import 'package:saumap/pages/marker/add.dart';
 import 'package:saumap/pages/marker/markerArguments.dart';
+import 'package:toast/toast.dart';
 import 'components/MyTextField.dart';
 
 class MapPage extends StatefulWidget {
@@ -24,6 +27,7 @@ class _MapPageState extends State<MapPage> {
 
   Map myLocate;
   // BMFMarker myLocateMarker;
+  BMFPolyline path;
 
   @override
   void initState() {
@@ -64,8 +68,23 @@ class _MapPageState extends State<MapPage> {
           actions: [
             IconButton(
                 icon: Icon(Icons.search),
-                onPressed: () {
-                  print(where);
+                onPressed: () async {
+                  var from = myLocate['latitude'].toString() +
+                      ',' +
+                      myLocate['longitude'].toString();
+                  var response = await dio.get(getPathsUrl,
+                      queryParameters: {"to": where, "from": from});
+
+                  List points = response.data;
+                  if (points.length == 0) {
+                    Toast.show("未标注！", context, gravity: Toast.TOP);
+                  }
+                  print(points);
+                  ctl?.removeOverlay(path?.getId());
+                  path = addLine(
+                    ctl,
+                    points,
+                  );
                 }),
           ],
         ),
@@ -140,15 +159,13 @@ class _MapPageState extends State<MapPage> {
                   child: Icon(
                     Icons.my_location_sharp,
                     // color: Colors.black,
-                    size: 30,
+                    size: 25,
                   ),
                   elevation: 5, //阴影
                   onPressed: () {
-                    setState(() {
-                      double lat = myLocate['latitude'];
-                      double lng = myLocate['longitude'];
-                      ctl.setCenterCoordinate(BMFCoordinate(lat, lng), true);
-                    });
+                    double lat = myLocate['latitude'];
+                    double lng = myLocate['longitude'];
+                    ctl.setCenterCoordinate(BMFCoordinate(lat, lng), true);
                   },
                 ),
               ],
@@ -156,6 +173,8 @@ class _MapPageState extends State<MapPage> {
   }
 
   void mapClickCallback(BMFCoordinate coordinate) {
+    print(coordinate.latitude);
+    print(coordinate.longitude);
     if (addmarker) {
       Navigator.pushNamed(context, '/form',
           arguments: MarkerArguments(ctl, coordinate.latitude.toString(),
