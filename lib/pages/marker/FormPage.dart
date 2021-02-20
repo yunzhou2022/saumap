@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bmfmap/BaiduMap/models/overlays/bmf_marker.dart';
 import 'package:saumap/apis.dart';
 import 'package:saumap/pages/components/MyTextField.dart';
 import 'package:image_picker/image_picker.dart';
@@ -181,11 +182,13 @@ class _FormPageState extends State<FormPage> {
       uploadImgUrl,
       data: formData,
     );
-
     print(response);
-    addMark(ctl, double.parse(lat_x), double.parse(lng_y));
+
+    BMFMarker mark = addMark(ctl, double.parse(lat_x), double.parse(lng_y));
+    Map res = response.data;
+    res['marker'] = mark;
     Toast.show("添加成功！", context);
-    Navigator.pop(context);
+    Navigator.pop(context, res);
   }
 
   void _forSubmitted() {
