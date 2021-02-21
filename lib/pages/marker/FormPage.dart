@@ -30,14 +30,11 @@ class _FormPageState extends State<FormPage> {
   @override
   Widget build(BuildContext context) {
     final MarkerArguments args = ModalRoute.of(context).settings.arguments;
-    print('123412312');
 
     lat_x = args.lat_x;
     lng_y = args.lng_y;
     ctl = args.ctl;
 
-    print(lat_x);
-    print(lng_y);
     return Scaffold(
       appBar: AppBar(
         title: Text('添加标注'),
@@ -164,7 +161,6 @@ class _FormPageState extends State<FormPage> {
     setState(() {
       _image = File(pickedFile.path);
     });
-    print(pickedFile.path);
   }
 
   //上传图片到服务器
@@ -184,9 +180,15 @@ class _FormPageState extends State<FormPage> {
     );
     print(response);
 
-    BMFMarker mark = addMark(ctl, double.parse(lat_x), double.parse(lng_y));
     Map res = response.data;
-    res['marker'] = mark;
+
+    // BMFMarker mark = addMark(ctl, double.parse(lat_x), double.parse(lng_y));
+    Map markerBmfText = addMarkerWithText(
+        ctl, res['name'], double.parse(lat_x), double.parse(lng_y));
+
+    res['marker'] = markerBmfText['marker'];
+    res['bmgText'] = markerBmfText['bmfText'];
+
     Toast.show("添加成功！", context);
     Navigator.pop(context, res);
   }

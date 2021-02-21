@@ -11,7 +11,7 @@ LocationFlutterPlugin _locationPlugin = new LocationFlutterPlugin();
 
 getLocate() {
   /// 动态申请定位权限
-  // _locationPlugin.requestPermission();
+  _locationPlugin.requestPermission();
 
   /// 设置ios端ak, android端ak可以直接在清单文件中配置
   // LocationFlutterPlugin.setApiKey("百度地图开放平台申请的ios端ak");

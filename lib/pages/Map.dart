@@ -114,11 +114,13 @@ class _MapPageState extends State<MapPage> {
                   if (now == null) return;
                   dio.delete(locationUrl + '/' + now['_id']).then((value) {
                     ctl.removeMarker(now['marker']);
+                    ctl.removeOverlay(now['bmfText'].getId());
                   }).catchError((err) {
                     Toast.show("删除失败，请重试", context, gravity: Toast.CENTER);
                   });
                 } else {
                   setState(() {
+                    // 显示Dialog
                     _clickedMarker = now;
                   });
                 }
