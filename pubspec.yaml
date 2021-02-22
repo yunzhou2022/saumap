@@ -70,7 +70,6 @@ flutter:
 
     - images/noImg.jpg
 
-    - assets/bee.mp4
     # - images/people.svg
 
   # An image asset can refer to one or more resolution-specific "variants", see

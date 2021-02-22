@@ -3,6 +3,7 @@ import 'package:flutter_bmfbase/BaiduMap/bmfmap_base.dart';
 import 'package:flutter_bmfmap/BaiduMap/bmfmap_map.dart';
 import 'package:saumap/apis.dart';
 import 'package:saumap/pages/bgm/play.dart';
+import 'package:saumap/pages/bgm/util.dart';
 import 'package:saumap/pages/components/Dialog.dart';
 import 'package:saumap/pages/components/Locate.dart';
 import 'package:saumap/pages/line/add.dart';
@@ -32,6 +33,7 @@ class _MapPageState extends State<MapPage> {
   BMFPolyline path;
   Map<String, String> whereType;
 
+  String lastText;
   @override
   void initState() {
     super.initState();
@@ -44,15 +46,23 @@ class _MapPageState extends State<MapPage> {
     // 设置监听当前位置，更新位置
     var listener = getLocate();
     listener().listen((Map<String, Object> result) {
+      double latitude = result['latitude'];
+      double longitude = result['longitude'];
+
+      // 动态跟新我的位置
       ctl?.updateLocationData(BMFUserLocation(
         location: BMFLocation(
-            coordinate: BMFCoordinate(result['latitude'], result['longitude']),
+            coordinate: BMFCoordinate(latitude, longitude),
             altitude: 0,
             horizontalAccuracy: 5,
             verticalAccuracy: -1.0,
             speed: -1.0,
             course: -1.0),
       ));
+
+      if (soundSwitch) {
+        lastText = autoPlay(latitude, longitude, markers, lastText, setState);
+      }
 
       myLocate = result;
     });
@@ -119,6 +129,8 @@ class _MapPageState extends State<MapPage> {
                       dio.delete(locationUrl + '/' + now['_id']).then((value) {
                         ctl.removeMarker(now['marker']);
                         ctl.removeOverlay(now['bmfText'].getId());
+                        int index = getUpdateMarker(markers, now['_id']);
+                        markers.removeAt(index);
                       }).catchError((err) {
                         Toast.show("删除失败，请重试", context, gravity: Toast.CENTER);
                       });
@@ -137,6 +149,12 @@ class _MapPageState extends State<MapPage> {
                       });
                     }
                   });
+                  if (soundSwitch) {
+                    String name = now['name'];
+                    String introduce = now['introduce'];
+                    String text = name + '\n' + introduce;
+                    playText(text, setState);
+                  }
                 }
               });
               // 地图点击回调
@@ -221,7 +239,6 @@ class _MapPageState extends State<MapPage> {
                     setState(() {
                       soundSwitch = !soundSwitch;
                     });
-                    // alertDialog(context);
                     // playText("哈哈哈哈或或或或", setState);
                   },
                 ),
