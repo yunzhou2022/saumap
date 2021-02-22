@@ -3,10 +3,10 @@ import 'package:flutter_bmfbase/BaiduMap/bmfmap_base.dart';
 import 'package:flutter_bmfmap/BaiduMap/bmfmap_map.dart';
 import 'package:saumap/apis.dart';
 import 'package:saumap/pages/bgm/play.dart';
-import 'package:saumap/pages/bgm/util.dart';
 import 'package:saumap/pages/components/Dialog.dart';
 import 'package:saumap/pages/components/Locate.dart';
 import 'package:saumap/pages/line/add.dart';
+import 'package:saumap/pages/line/lineArguments.dart';
 import 'package:saumap/pages/marker/add.dart';
 import 'package:saumap/pages/marker/find.dart';
 import 'package:saumap/pages/marker/markerArguments.dart';
@@ -34,6 +34,7 @@ class _MapPageState extends State<MapPage> {
   Map<String, String> whereType;
 
   String lastText;
+  List<BMFCoordinate> _points;
   @override
   void initState() {
     super.initState();
@@ -70,6 +71,7 @@ class _MapPageState extends State<MapPage> {
 
   @override
   Widget build(BuildContext context) {
+    final LineArguments args = ModalRoute.of(context).settings.arguments;
     return Scaffold(
         appBar: AppBar(
           title: MyTextField(
@@ -109,6 +111,10 @@ class _MapPageState extends State<MapPage> {
             onBMFMapCreated: (controller) {
               ctl = controller;
 
+              if (args != null) {
+                _points = args.points;
+                addLineWithListCoordinate(ctl, _points);
+              }
               // 定位自己
               ctl?.showUserLocation(true);
               // 开始定位
