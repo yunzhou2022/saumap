@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bmfbase/BaiduMap/bmfmap_base.dart';
 import 'package:flutter_bmfmap/BaiduMap/bmfmap_map.dart';
 import 'package:saumap/apis.dart';
+import 'package:saumap/pages/bgm/play.dart';
 import 'package:saumap/pages/components/Dialog.dart';
 import 'package:saumap/pages/components/Locate.dart';
 import 'package:saumap/pages/line/add.dart';
@@ -22,10 +23,10 @@ class _MapPageState extends State<MapPage> {
 
   bool addMarker = false;
   bool deleteMarker = false;
+  bool soundSwitch = false;
   String where;
 
   List markers;
-  Map _clickedMarker;
 
   Map myLocate;
   BMFPolyline path;
@@ -34,6 +35,7 @@ class _MapPageState extends State<MapPage> {
   @override
   void initState() {
     super.initState();
+
     mapOptions = BMFMapOptions(
         center: BMFCoordinate(41.932551, 123.410423),
         zoomLevel: 18,
@@ -112,16 +114,28 @@ class _MapPageState extends State<MapPage> {
                 Map now = getClickedMarker(markers, id);
                 if (deleteMarker) {
                   if (now == null) return;
-                  dio.delete(locationUrl + '/' + now['_id']).then((value) {
-                    ctl.removeMarker(now['marker']);
-                    ctl.removeOverlay(now['bmfText'].getId());
-                  }).catchError((err) {
-                    Toast.show("删除失败，请重试", context, gravity: Toast.CENTER);
+                  alertConfirmDialog(context).then((confirm) {
+                    if (confirm) {
+                      dio.delete(locationUrl + '/' + now['_id']).then((value) {
+                        ctl.removeMarker(now['marker']);
+                        ctl.removeOverlay(now['bmfText'].getId());
+                      }).catchError((err) {
+                        Toast.show("删除失败，请重试", context, gravity: Toast.CENTER);
+                      });
+                    }
                   });
                 } else {
-                  setState(() {
-                    // 显示Dialog
-                    _clickedMarker = now;
+                  alertLocationDialog(context, now).then((type) {
+                    if (type == 'update') {
+                      Navigator.pushNamed(context, '/form',
+                              arguments: MarkerArguments(
+                                  ctl, now['lat_x'], now['lng_y'],
+                                  info: now))
+                          .then((marker) {
+                        int id = getUpdateMarker(markers, now['_id']);
+                        markers[id] = marker;
+                      });
+                    }
                   });
                 }
               });
@@ -132,23 +146,11 @@ class _MapPageState extends State<MapPage> {
             },
             mapOptions: mapOptions,
           ),
-          _clickedMarker == null
-              ? Container(
-                  width: 0,
-                  height: 0,
-                )
-              : LocationDialog(
-                  info: _clickedMarker,
-                  onClose: () {
-                    setState(() {
-                      _clickedMarker = null;
-                    });
-                  }),
         ]),
         floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
         floatingActionButton: Container(
             width: 40,
-            height: 170,
+            height: 230,
             margin: EdgeInsets.fromLTRB(0, 0, 4, 100),
             child: Column(
               children: [
@@ -203,6 +205,24 @@ class _MapPageState extends State<MapPage> {
                     double lng = myLocate['longitude'];
                     ctl.setCenterCoordinate(BMFCoordinate(lat, lng), true);
                     ctl.setZoomTo(18);
+                  },
+                ),
+                FloatingActionButton(
+                  heroTag: "sound",
+                  child: Tooltip(
+                    message: soundSwitch ? " 关闭语音介绍" : "打开语音介绍",
+                    child: Icon(
+                      soundSwitch ? Icons.music_note : Icons.music_off,
+                      size: 30,
+                    ),
+                  ),
+                  elevation: 5, //阴影
+                  onPressed: () {
+                    setState(() {
+                      soundSwitch = !soundSwitch;
+                    });
+                    // alertDialog(context);
+                    // playText("哈哈哈哈或或或或", setState);
                   },
                 ),
               ],

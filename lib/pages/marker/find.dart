@@ -21,3 +21,13 @@ Map getClickedMarker(List markers, id) {
   }
   return null;
 }
+
+int getUpdateMarker(List markers, _id) {
+  for (int i = 0; i < markers.length; i++) {
+    Map item = markers[i];
+    if (item["_id"] == _id) {
+      return i;
+    }
+  }
+  return -1;
+}

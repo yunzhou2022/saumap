@@ -2,9 +2,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bmfmap/BaiduMap/models/overlays/bmf_marker.dart';
 import 'package:saumap/apis.dart';
-import 'package:saumap/pages/components/MyTextField.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:saumap/pages/marker/add.dart';
 import 'package:saumap/pages/marker/markerArguments.dart';
@@ -19,14 +17,19 @@ class FormPage extends StatefulWidget {
 
 class _FormPageState extends State<FormPage> {
   GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
-  String _name, _introduce, _type = 'lujing';
-  String _tags;
+  String _name, _introduce;
+  //  String _type = 'lujing';
   File _image;
 
   String lat_x, lng_y;
+  Map _info;
   var ctl;
   final picker = ImagePicker();
 
+  String imageCtl;
+
+  TextEditingController nameCtl = TextEditingController();
+  TextEditingController introCtl = TextEditingController();
   @override
   Widget build(BuildContext context) {
     final MarkerArguments args = ModalRoute.of(context).settings.arguments;
@@ -34,10 +37,18 @@ class _FormPageState extends State<FormPage> {
     lat_x = args.lat_x;
     lng_y = args.lng_y;
     ctl = args.ctl;
+    _info = args.info;
+
+    if (_info != null) {
+      if (nameCtl.text == '') nameCtl.text = _info['name'];
+      if (introCtl.text == '') introCtl.text = _info['introduce'];
+      imageCtl =
+          _info['imgs'].length != 0 ? baseUrl + _info['imgs'][0]['path'] : null;
+    }
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('添加标注'),
+        title: _info == null ? Text('添加标注') : Text('修改标注'),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -69,24 +80,24 @@ class _FormPageState extends State<FormPage> {
               },
               key: _formKey,
               child: Column(children: [
-                Row(
-                  children: [
-                    Text('标注类型:'),
-                    Radio(
-                        value: 'lujing',
-                        groupValue: _type,
-                        onChanged: _handleTypeChange),
-                    Text('路径'),
-                    SizedBox(
-                      width: 10,
-                    ),
-                    Radio(
-                        value: 'jingdian',
-                        groupValue: _type,
-                        onChanged: _handleTypeChange),
-                    Text('景点'),
-                  ],
-                ),
+                // Row(
+                //   children: [
+                //     Text('标注类型:'),
+                //     Radio(
+                //         value: 'lujing',
+                //         groupValue: _type,
+                //         onChanged: _handleTypeChange),
+                //     Text('路径'),
+                //     SizedBox(
+                //       width: 10,
+                //     ),
+                //     Radio(
+                //         value: 'jingdian',
+                //         groupValue: _type,
+                //         onChanged: _handleTypeChange),
+                //     Text('景点'),
+                //   ],
+                // ),
                 Divider(),
                 new TextFormField(
                   keyboardType: TextInputType.text,
@@ -99,23 +110,37 @@ class _FormPageState extends State<FormPage> {
                   onSaved: (val) {
                     _name = val;
                   },
+                  controller: nameCtl,
                 ),
                 new TextFormField(
                   keyboardType: TextInputType.text,
                   decoration: new InputDecoration(
                     labelText: '介绍',
                   ),
+                  onChanged: (val) {
+                    _introduce = val;
+                  },
                   onSaved: (val) {
                     _introduce = val;
                   },
+                  controller: introCtl,
                 ),
                 ListTile(
                   contentPadding: EdgeInsets.all(-4),
                   title: Text('图片'),
                   subtitle: _image == null
-                      ? RaisedButton(
-                          child: Text("请选择"), onPressed: _getImageFromGallery)
-                      : Image.file(_image),
+                      ? imageCtl == null
+                          ? RaisedButton(
+                              child: Text("请选择"),
+                              onPressed: _getImageFromGallery)
+                          : InkWell(
+                              child: Image.network(imageCtl),
+                              onTap: _getImageFromGallery,
+                            )
+                      : InkWell(
+                          child: Image.file(_image),
+                          onTap: _getImageFromGallery,
+                        ),
                 ),
                 ListTile(
                   contentPadding: EdgeInsets.all(-4),
@@ -178,12 +203,17 @@ class _FormPageState extends State<FormPage> {
       uploadImgUrl,
       data: formData,
     );
-    print(response);
-
     Map res = response.data;
+    return res;
+  }
 
-    // BMFMarker mark = addMark(ctl, double.parse(lat_x), double.parse(lng_y));
-    Map markerBmfText = addMarkerWithText(
+  void _addMarker(Map res) {
+    Map markerBmfText;
+    if (_info != null) {
+      if (_info['marker'] != null) ctl.removeMarker(_info['marker']);
+      if (_info['bmfText'] != null) ctl.removeOverlay(_info['bmfText'].getId());
+    }
+    markerBmfText = addMarkerWithText(
         ctl, res['name'], double.parse(lat_x), double.parse(lng_y));
 
     res['marker'] = markerBmfText['marker'];
@@ -193,18 +223,54 @@ class _FormPageState extends State<FormPage> {
     Navigator.pop(context, res);
   }
 
-  void _forSubmitted() {
+  upload() async {
+    String path = '';
+    String name = '';
+    List imgs;
+    if (_image != null) {
+      Map pathName = await _uploadImage();
+      path = pathName['path'];
+      name = pathName['name'];
+    }
+
+    if (path == '') {
+      if (_info != null) {
+        imgs = _info['imgs'];
+      } else {
+        imgs = [];
+      }
+    } else {
+      imgs = [
+        {"path": path, "name": name}
+      ];
+    }
+
+    Map data = {
+      "name": _name,
+      "introduce": _introduce,
+      "lat_x": lat_x,
+      "lng_y": lng_y,
+      "imgs": imgs
+    };
+
+    var response;
+    if (_info != null) {
+      response = await dio.put(locationUrl + '/' + _info['_id'], data: data);
+    } else {
+      response = await dio.post(locationUrl, data: data);
+    }
+
+    Map res = response.data;
+    return res;
+  }
+
+  void _forSubmitted() async {
     var _form = _formKey.currentState;
 
     if (_form.validate()) {
       _form.save();
-      _uploadImage();
+      Map marker = await upload();
+      _addMarker(marker);
     }
-  }
-
-  void _handleTypeChange(v) {
-    setState(() {
-      _type = v;
-    });
   }
 }

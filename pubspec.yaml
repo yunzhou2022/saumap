@@ -36,6 +36,7 @@ dependencies:
   dio: ^3.0.10
   toast: ^0.1.5
   giffy_dialog: ^1.8.0
+  video_player: ^1.0.1
 
 dev_dependencies:
   flutter_test:
@@ -66,6 +67,10 @@ flutter:
 
     - images/set_location_64.png
     - images/set_location_32.png
+
+    - images/noImg.jpg
+
+    - assets/bee.mp4
     # - images/people.svg
 
   # An image asset can refer to one or more resolution-specific "variants", see

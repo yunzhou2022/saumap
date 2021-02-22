@@ -9,3 +9,8 @@ final uploadImgUrl = baseUrl + "/api/location/uploadImg";
 final locationUrl = baseUrl + "/api/location";
 
 final getPathsUrl = baseUrl + "/api/location/paths";
+
+final getMp3 = baseUrl + "/api/location/getMp3";
+// class Api{
+
+// }
