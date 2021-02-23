@@ -37,3 +37,4 @@ samples, guidance on mobile development, and a full API reference.
 ![](https://img2020.cnblogs.com/blog/1534579/202102/1534579-20210223152113653-732328377.png)
 ![](https://img2020.cnblogs.com/blog/1534579/202102/1534579-20210223152152156-784907233.png)
 ![](https://img2020.cnblogs.com/blog/1534579/202102/1534579-20210223152203253-1313595387.png)
+![](https://img2020.cnblogs.com/blog/1534579/202102/1534579-20210223153146911-62480784.png)
